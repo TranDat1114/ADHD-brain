@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mô phỏng Dòng Suy Nghĩ (ADHD)</title>
+    <title>Mô phỏng Suy Nghĩ (ADHD)</title>
     <meta name="description"
         content="Trình diễn tương tác mô phỏng cách luồng suy nghĩ phân nhánh, nhảy cóc của một bộ não ADHD." />
     <style>
@@ -52,25 +52,123 @@
         }
 
         #sidebar {
-            width: 310px;
+            width: 320px;
+            /* điều chỉnh gần lũy thừa 2 */
             background: var(--panel);
             border-right: 1px solid var(--panel-border);
-            padding: 14px 16px;
+            padding: 16px 16px;
+            /* 16 */
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 16px;
+            /* 16 */
             box-shadow: 4px 0 12px -6px #0009;
+            transition: transform .35s ease, width .3s ease;
+            will-change: transform;
+            z-index: 1150;
+            position: relative;
+            height: 100vh;
+            /* full height để có footer cố định */
+        }
+
+        #sidebar .sb-head {
+            flex: 0 0 auto;
+        }
+
+        #sidebar .sb-body {
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-height: 0;
+        }
+
+        /* cho phép body cuộn riêng nếu quá dài (desktop) */
+        @media (min-width: 901px) {
+            #sidebar .sb-body {
+                overflow-y: visible;
+            }
+        }
+
+        #sidebar .sb-foot {
+            flex: 0 0 auto;
+            margin-top: auto;
+            font-size: 0.62rem;
+            text-align: center;
+            opacity: .7;
+            padding-top: 4px;
+        }
+
+        #sidebar .sb-foot a {
+            color: var(--accent2);
+            text-decoration: none;
+        }
+
+        body.sidebar-collapsed #sidebar {
+            transform: translateX(-100%);
+            /* Loại khỏi flow flex để không chiếm chỗ khi ẩn (desktop) */
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            pointer-events: none;
+            /* tránh chặn click khu vực bên dưới */
+        }
+
+        .nav-toggle {
+            position: fixed;
+            top: 50%;
+            left: 300px;
+            /* near sidebar edge */
+            /* transform: translateY(-50%); */
+            z-index: 1400;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+            color: #111;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 2px 6px -2px #000c;
+            padding: 6px 8px;
+            border-radius: 10px;
+            /* đổi thành bo góc vuông mềm */
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: left .35s ease, background .3s ease, color .3s ease;
+        }
+
+        body.sidebar-collapsed .nav-toggle {
+            left: 16px;
+            /* giữ cố định khi sidebar bị loại khỏi flow */
+            background: #222;
+            color: var(--text);
+        }
+
+        body.show-backdrop #backdrop {
+            opacity: 1;
+            visibility: visible;
         }
 
         .mt-1 {
             margin-top: 1rem;
         }
 
+        /* removed stray margin-left */
         #sim-container {
             flex: 1;
             position: relative;
             overflow: hidden;
             user-select: none;
+            transition: margin-left .35s ease, width .35s ease;
+        }
+
+        /* Khi sidebar hiển thị (desktop), phần mô phỏng vẫn flex chiếm phần còn lại. Khi ẩn phải phủ full */
+        body.sidebar-collapsed #sim-container {
+            margin-left: 0 !important;
+            width: 100vw;
         }
 
         #view {
@@ -166,8 +264,10 @@
             border: none;
             color: #111;
             font-weight: 600;
-            padding: 8px 14px;
-            border-radius: 999px;
+            padding: 8px 16px;
+            /* 8 x 16 */
+            border-radius: 10px;
+            /* chuẩn bo góc */
             cursor: pointer;
             font-size: .8rem;
             letter-spacing: .5px;
@@ -194,7 +294,8 @@
             font-size: .7rem;
             line-height: 1.4;
             border-radius: 8px;
-            height: clamp(180px, 34vh, 260px);
+            height: clamp(128px, 32vh, 256px);
+            /* dùng 128 - 256 */
             position: relative;
             scrollbar-width: thin;
             scrollbar-color: var(--accent2) #111;
@@ -273,7 +374,8 @@
 
         #focusHalo {
             position: absolute;
-            width: 160px;
+            width: 128px;
+            /* 128 */
             aspect-ratio: 1;
             border: 2px dashed var(--accent2);
             border-radius: 50%;
@@ -363,28 +465,90 @@
         /* Responsive */
         @media (max-width: 900px) {
             body {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             #sidebar {
-                width: 100%;
-                border-right: none;
-                border-bottom: 1px solid var(--panel-border);
-                flex-direction: row;
-                overflow: auto;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: 275px;
+                max-width: 80%;
+                border-right: 1px solid var(--panel-border);
+                border-bottom: none;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+
+            body.sidebar-collapsed #sidebar {
+                box-shadow: none;
+            }
+
+            .nav-toggle {
+                top: 50%;
+                left: 265px;
+                width: 40px;
+                height: 40px;
+            }
+
+            body.sidebar-collapsed .nav-toggle {
+                left: 12px;
+                top: 50%;
+            }
+
+            #sim-container {
+                flex: 1;
+            }
+
+            body:not(.sidebar-collapsed) #sim-container {
+                margin-left: 275px;
+                width: calc(100vw - 275px);
+            }
+
+            body.sidebar-collapsed #sim-container {
+                margin-left: 0;
+                width: 100vw;
             }
 
             #sequence {
-                height: 140px;
+                height: 150px;
+            }
+        }
+
+        @media (max-width: 520px) {
+            h1 {
+                font-size: .95rem;
+            }
+
+            button,
+            .pill {
+                padding: 6px 12px;
+                font-size: .72rem;
+            }
+
+            #controls {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            #sequence {
+                font-size: .62rem;
+            }
+
+            .nav-toggle {
+                font-size: .85rem;
             }
         }
     </style>
 </head>
 
 <body>
+    <div id="backdrop"></div>
+    <button id="navToggle" class="nav-toggle" aria-label="Thu gọn menu" title="Thu gọn / Mở menu"
+        aria-expanded="true">◀</button>
     <aside id="sidebar">
-        <div>
-            <h1>Dòng Suy Nghĩ Phi Tuyến (ADHD)</h1>
+        <div class="sb-head">
+            <h1>Dòng Suy Nghĩ (ADHD)</h1>
             <div id="legend">
                 <span><i style="background:var(--task);"></i> Việc đang làm</span>
                 <span><i style="background:var(--idea);"></i> Ý tưởng</span>
@@ -392,44 +556,44 @@
                 <span><i style="background:var(--distraction);"></i> Phân tâm</span>
             </div>
         </div>
-        <div id="controls">
-            <label>Tốc độ
-                <input id="speed" type="range" min="0.2" max="2.2" step="0.2" value="1" />
-            </label>
-            <label>Mức phân nhánh
-                <input id="branch" type="range" min="0" max="1" step="0.05" value="0.5" />
-            </label>
-            <label>Độ lộn xộn
-                <input id="chaos" type="range" min="0" max="1" step="0.05" value="0.4" />
-            </label>
-            <label>Độ lưu giữ
-                <input id="retention" type="range" min="5" max="60" step="1" value="25" />
-            </label>
+        <div class="sb-body">
+            <div id="controls">
+                <label>Tốc độ
+                    <input id="speed" type="range" min="0.2" max="2.2" step="0.2" value="1" />
+                </label>
+                <label>Mức phân nhánh
+                    <input id="branch" type="range" min="0" max="1" step="0.05" value="0.5" />
+                </label>
+                <label>Độ lộn xộn
+                    <input id="chaos" type="range" min="0" max="1" step="0.05" value="0.4" />
+                </label>
+                <label>Độ lưu giữ
+                    <input id="retention" type="range" min="5" max="60" step="1" value="25" />
+                </label>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button id="toggleBtn">TẠM DỪNG</button>
+                <button id="jumpBtn" class="secondary" title="Kích hoạt một cú nhảy cóc ngẫu nhiên">Nhảy cóc ⚡</button>
+                <button id="resetBtn" class="secondary" title="Xóa & bắt đầu lại">Làm mới</button>
+            </div>
+            <form id="addThoughtForm" autocomplete="off">
+                <input id="newThought" placeholder="Thêm ý nghĩ của bạn..." />
+                <button type="submit">+</button>
+            </form>
+            <div id="statusLine">Trạng thái: <span id="status">đang chạy</span> <span class="blink">●</span></div>
+            <div id="sequence" aria-live="polite"></div>
+            <div class="disclaimer">Mô phỏng mang tính minh họa nhằm giúp hình dung sự phân nhánh và nhảy cóc trong
+                luồng
+                suy nghĩ ADHD.
+                <br /><strong>Không phải công cụ chẩn đoán y khoa.</strong>
+            </div>
+            <div class="disclaimer">
+                <p>Giữ nút <kbd>Ctrl</kbd> và cuộn <kbd>chuột giữa</kbd> để phóng to/thu nhỏ.</p>
+                <p class="mt-1">Giữ nút <kbd>Alt</kbd> và giữ <kbd>chuột trái</kbd> để di chuyển vùng nhìn.</p>
+            </div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button id="toggleBtn">TẠM DỪNG</button>
-            <button id="jumpBtn" class="secondary" title="Kích hoạt một cú nhảy cóc ngẫu nhiên">Nhảy cóc ⚡</button>
-            <button id="resetBtn" class="secondary" title="Xóa & bắt đầu lại">Làm mới</button>
-        </div>
-        <form id="addThoughtForm" autocomplete="off">
-            <input id="newThought" placeholder="Thêm ý nghĩ của bạn..." />
-            <button type="submit">+</button>
-        </form>
-        <div id="statusLine">Trạng thái: <span id="status">đang chạy</span> <span class="blink">●</span></div>
-        <div id="sequence" aria-live="polite"></div>
-        <!-- Đã loại bỏ nút chuyển chế độ cuộn ngang -->
-        <div class="disclaimer">Mô phỏng mang tính minh họa nhằm giúp hình dung sự phân nhánh và nhảy cóc trong luồng
-            suy
-            nghĩ ADHD.
-            <br /><strong>Không phải công cụ chẩn đoán y khoa.</strong>
-        </div>
-        <div class="disclaimer">
-            <p>
-                Giữ nút <kbd>Ctrl</kbd> và cuộn <kbd>chuột giữa</kbd> để phóng to/thu nhỏ.
-            </p>
-            <p class="mt-1">
-                Giữ nút <kbd>Alt</kbd> và giữ <kbd>chuột trái</kbd> để di chuyển vùng nhìn.
-            </p>
+        <div class="sb-foot">
+            Tác giả: <a href="https://github.com/TranDat1114" target="_blank">TranDat1114</a>
         </div>
     </aside>
     <main id="sim-container">
@@ -479,11 +643,11 @@
         let activeId = null;
         let nextId = 1;
         let lastSpawn = 0;
-        const spawnBaseInterval = 1100; // ms (will be divided by speed)
-        const focusSwitchBase = 1800; // ms
+        const spawnBaseInterval = 1024; // ms (2^10 approximated)
+        const focusSwitchBase = 2048; // ms (2^11)
         let lastFocusSwitch = 0;
         const maxNodes = 250;
-        const padding = 50;
+        const padding = 64; // 2^6
 
         function rand(a = 0, b = 1) { return a + Math.random() * (b - a); }
         function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -633,7 +797,7 @@
         function escapeHtml(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
         // ================== VÒNG LẶP ==================
-        let worldWidth = 4000, worldHeight = 3000; // không gian tư duy lớn để pan/zoom
+        let worldWidth = 4096, worldHeight = 3072; // dùng kích thước lũy thừa 2 gần (4096x3072)
         let lastFrame = performance.now();
         function loop(now) {
             const dt = Math.min(0.06, (now - lastFrame) / 1000); // giây
@@ -817,6 +981,30 @@
         function clampAll() { thoughts.forEach(t => { clampWithin(t); positionNode(t); }); updateAllEdges(); }
 
         // =============== SỰ KIỆN UI ===============
+        const navToggleBtn = document.getElementById('navToggle');
+        const backdrop = document.getElementById('backdrop');
+        function setSidebarCollapsed(collapsed) {
+            document.body.classList.toggle('sidebar-collapsed', collapsed);
+            const small = window.matchMedia('(max-width:900px)').matches;
+            document.body.classList.toggle('show-backdrop', small && !collapsed);
+            navToggleBtn.innerHTML = collapsed ? '▶' : '◀';
+            navToggleBtn.setAttribute('aria-expanded', (!collapsed).toString());
+        }
+        navToggleBtn.addEventListener('click', () => {
+            const collapsed = !document.body.classList.contains('sidebar-collapsed');
+            setSidebarCollapsed(collapsed);
+        });
+        backdrop.addEventListener('click', () => setSidebarCollapsed(true));
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Escape') setSidebarCollapsed(true);
+        });
+        // Auto collapse on small screens after initial load
+        function responsiveInit() {
+            const small = window.matchMedia('(max-width:900px)').matches;
+            setSidebarCollapsed(small); // collapse by default on small
+        }
+        window.addEventListener('resize', responsiveInit);
+        responsiveInit();
         buttons.toggle.addEventListener('click', () => {
             running = !running;
             buttons.toggle.textContent = running ? 'TẠM DỪNG' : 'TIẾP TỤC';
@@ -860,7 +1048,7 @@
             svg.setAttribute('height', worldHeight);
         }
         container.addEventListener('mousedown', e => {
-            if (!e.altKey) return; // Giữ Alt để pan
+            if (!allowPanWithoutAlt && !e.altKey) return; // Giữ Alt để pan (desktop); mobile cho phép tự do
             isPanning = true; panStart = { x: e.clientX, y: e.clientY }; camStart = { x: camera.x, y: camera.y };
             container.style.cursor = 'grabbing';
         });
@@ -877,7 +1065,7 @@
             if (!e.ctrlKey) return; // Ctrl + lăn để zoom
             e.preventDefault();
             const before = camera.scale;
-            const delta = -e.deltaY * 0.0015;
+            const delta = -e.deltaY * 0.01;
             camera.scale = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, camera.scale * (1 + delta)));
             const rect = container.getBoundingClientRect();
             const cx = (e.clientX - rect.left) / before + camera.x;
@@ -889,6 +1077,36 @@
             applyCamera();
         }, { passive: false });
         applyCamera();
+
+        // =============== PAN TRÊN THIẾT BỊ CẢM ỨNG ===============
+        let allowPanWithoutAlt = false;
+        function detectMobile() {
+            const coarse = window.matchMedia('(pointer: coarse)').matches;
+            const narrow = window.matchMedia('(max-width: 900px)').matches;
+            allowPanWithoutAlt = coarse || narrow; // nếu màn hình nhỏ hoặc pointer thô
+        }
+        detectMobile();
+        window.addEventListener('resize', detectMobile);
+
+        // Touch events
+        container.addEventListener('touchstart', e => {
+            if (e.touches.length !== 1) return;
+            if (!allowPanWithoutAlt) return; // nếu không ở mobile vẫn để Alt + chuột
+            const t = e.touches[0];
+            isPanning = true; panStart = { x: t.clientX, y: t.clientY }; camStart = { x: camera.x, y: camera.y };
+        }, { passive: true });
+        container.addEventListener('touchmove', e => {
+            if (!isPanning || e.touches.length !== 1) return;
+            const t = e.touches[0];
+            const dx = (t.clientX - panStart.x) / camera.scale;
+            const dy = (t.clientY - panStart.y) / camera.scale;
+            camera.x = Math.max(0, Math.min(worldWidth - container.clientWidth, camStart.x - dx));
+            camera.y = Math.max(0, Math.min(worldHeight - container.clientHeight, camStart.y - dy));
+            applyCamera();
+        }, { passive: true });
+        const endTouch = () => { if (isPanning) { isPanning = false; } };
+        container.addEventListener('touchend', endTouch);
+        container.addEventListener('touchcancel', endTouch);
 
         // =============== KHỞI CHẠY ===============
         initScenario();
